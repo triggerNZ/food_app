@@ -1,0 +1,13 @@
+services:
+  db:
+    image: postgres:15
+    container_name: food_app_db
+    environment:
+      POSTGRES_DB: food_app
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./dev-data:/var/lib/postgresql/data
+    restart: unless-stopped

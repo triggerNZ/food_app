@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { mockRestaurants, mockMenuItems } from '@/data/mockData';
 import { Restaurant, MenuItem } from '@/types';
 import { useCart } from '@/context/CartContext';
+import CartWarningModal from '@/components/CartWarningModal';
 
 interface RestaurantPageProps {
   params: Promise<{ id: string }>;
@@ -14,7 +15,13 @@ export default function RestaurantPage({ params }: RestaurantPageProps) {
   const [id, setId] = useState<string>('');
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-  const { addItem, getCartItemCount } = useCart();
+  const [showWarning, setShowWarning] = useState(false);
+  const [pendingItem, setPendingItem] = useState<MenuItem | null>(null);
+  const { addItem, addItemWithWarning, getCartItemCount, cart } = useCart();
+  
+  const currentCartRestaurant = cart.restaurantId 
+    ? mockRestaurants.find(r => r.id === cart.restaurantId)
+    : null;
 
   useEffect(() => {
     params.then(({ id }) => {
@@ -24,6 +31,26 @@ export default function RestaurantPage({ params }: RestaurantPageProps) {
       setMenuItems(mockMenuItems[id] || []);
     });
   }, [params]);
+  
+  const handleAddToCart = (item: MenuItem) => {
+    addItemWithWarning(item, id, () => {
+      setPendingItem(item);
+      setShowWarning(true);
+    });
+  };
+  
+  const handleConfirmClearCart = () => {
+    if (pendingItem) {
+      addItem(pendingItem, id);
+      setPendingItem(null);
+    }
+    setShowWarning(false);
+  };
+  
+  const handleCancelWarning = () => {
+    setPendingItem(null);
+    setShowWarning(false);
+  };
 
   if (!restaurant) {
     return (
@@ -99,7 +126,7 @@ export default function RestaurantPage({ params }: RestaurantPageProps) {
                         </span>
                       </div>
                       <button 
-                        onClick={() => addItem(item, id)}
+                        onClick={() => handleAddToCart(item)}
                         className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                       >
                         Add to Cart
@@ -111,6 +138,14 @@ export default function RestaurantPage({ params }: RestaurantPageProps) {
             </div>
           )}
         </div>
+        
+        <CartWarningModal
+          isOpen={showWarning}
+          onClose={handleCancelWarning}
+          onConfirm={handleConfirmClearCart}
+          currentRestaurant={currentCartRestaurant}
+          newRestaurant={restaurant}
+        />
       </div>
     </div>
   );

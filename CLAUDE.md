@@ -6,6 +6,8 @@ Tech stack:
 - Next.js
 - PostgreSQL
 - Typescript
+- Cypress
 
 # Remember
 - Always use bun over npm
+- Each piece of UI functionality should have a Cypress test

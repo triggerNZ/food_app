@@ -18,4 +18,3 @@ This shows the users current cart (for a specific restaurant). Users can change 
 
 ## Checkout page
 This shows a list of items in the cart, a subtotal and total, and has a pay now button.
-

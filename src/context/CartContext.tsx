@@ -16,6 +16,7 @@ type CartAction =
 interface CartContextType {
   cart: Cart;
   addItem: (menuItem: MenuItem, restaurantId: string) => void;
+  addItemWithWarning: (menuItem: MenuItem, restaurantId: string, onWarning?: (currentRestaurantId: string) => void) => void;
   removeItem: (itemId: string) => void;
   updateQuantity: (itemId: string, quantity: number) => void;
   clearCart: () => void;
@@ -128,6 +129,26 @@ export function CartProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'ADD_ITEM', payload: { menuItem, restaurantId } });
   };
   
+  const addItemWithWarning = (
+    menuItem: MenuItem, 
+    restaurantId: string, 
+    onWarning?: (currentRestaurantId: string) => void
+  ) => {
+    // Check if adding from different restaurant and cart has items
+    if (state.cart.restaurantId && 
+        state.cart.restaurantId !== restaurantId && 
+        state.cart.items.length > 0) {
+      
+      if (onWarning) {
+        onWarning(state.cart.restaurantId);
+        return;
+      }
+    }
+    
+    // If same restaurant or cart is empty, add directly
+    addItem(menuItem, restaurantId);
+  };
+  
   const removeItem = (itemId: string) => {
     dispatch({ type: 'REMOVE_ITEM', payload: { itemId } });
   };
@@ -158,6 +179,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     <CartContext.Provider value={{
       cart: state.cart,
       addItem,
+      addItemWithWarning,
       removeItem,
       updateQuantity,
       clearCart,

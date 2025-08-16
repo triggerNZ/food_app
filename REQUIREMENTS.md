@@ -13,7 +13,8 @@ Clicking a restaurant opens the restaurant page.
 The restaurant page lists the restaurant's menu, including an image, a title, description and price for each item. Each item has an option to add to cart.
 
 ## Cart page
-This shows the users current cart (for a specific restaurant). Users can change quantities or remove items. There is a button that takes the user to the checkout page
+This shows the users current cart (for a specific restaurant). Users can change quantities or remove items. There is a button that takes the user to the checkout page.
+- A user can only have one cart at a time for one restaurant. If the user attempts to add an item from a different restaurant, they are shown a warning that this will clear the existing cart.
 
 ## Checkout page
 This shows a list of items in the cart, a subtotal and total, and has a pay now button.

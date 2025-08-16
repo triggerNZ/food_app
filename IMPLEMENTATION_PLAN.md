@@ -21,11 +21,11 @@
 ## Stage 3: Search & Restaurant Page
 **Goal**: Add search functionality and detailed restaurant view
 **Success Criteria**:
-- Search by restaurant name, food type, menu items
+- Search by restaurant name, food type, menu items ✓
 - Restaurant page shows full menu with images ✓
-- Add to cart functionality works (buttons ready)
-**Tests**: Search filters work, cart updates correctly
-**Status**: Partially Complete - Restaurant page done, search pending
+- Add to cart functionality works (buttons ready) ✓
+**Tests**: Search filters work, cart updates correctly ✓
+**Status**: Complete
 
 ## Stage 4: Cart & Checkout
 **Goal**: Complete the ordering flow

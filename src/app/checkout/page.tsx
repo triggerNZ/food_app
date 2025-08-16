@@ -4,12 +4,27 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 import { Restaurant } from '@/types';
+import { CreditCardDetails, PaymentProvider } from '@/types/payment';
+import { PaymentService } from '@/services/payment';
 
 export default function CheckoutPage() {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
+  const [paymentError, setPaymentError] = useState<string>('');
+  const [transactionId, setTransactionId] = useState<string>('');
+  const [paymentProvider, setPaymentProvider] = useState<PaymentProvider>(PaymentProvider.STRIPE);
+  
+  const [cardDetails, setCardDetails] = useState<CreditCardDetails>({
+    cardNumber: '',
+    expiryMonth: '',
+    expiryYear: '',
+    cvv: '',
+    cardholderName: ''
+  });
+  
   const { cart, getCartTotal, clearCart } = useCart();
+  const paymentService = new PaymentService();
 
   useEffect(() => {
     if (cart.restaurantId) {
@@ -36,13 +51,69 @@ export default function CheckoutPage() {
 
   const handlePayNow = async () => {
     setIsProcessingPayment(true);
+    setPaymentError('');
     
-    // Simulate payment processing
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    try {
+      // Validate card details first
+      if (!paymentService.validateCardDetails(cardDetails)) {
+        throw new Error('Please check your card details and try again.');
+      }
+
+      // Create payment request
+      const paymentRequest = {
+        amount: total,
+        currency: 'USD',
+        cardDetails,
+        orderId: `order_${Date.now()}`,
+        customerEmail: 'customer@example.com', // In real app, get from user account
+        description: `Order from ${restaurant?.name || 'Restaurant'}`
+      };
+
+      // Process payment
+      const paymentResponse = await paymentService.processPayment(paymentRequest, paymentProvider);
+      
+      if (paymentResponse.success) {
+        setTransactionId(paymentResponse.transactionId || '');
+        setOrderPlaced(true);
+        clearCart();
+      } else {
+        throw new Error(paymentResponse.errorMessage || 'Payment failed. Please try again.');
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Payment failed. Please try again.';
+      setPaymentError(errorMessage);
+    } finally {
+      setIsProcessingPayment(false);
+    }
+  };
+
+  const handleCardDetailsChange = (field: keyof CreditCardDetails, value: string) => {
+    setCardDetails(prev => ({
+      ...prev,
+      [field]: value
+    }));
     
-    setIsProcessingPayment(false);
-    setOrderPlaced(true);
-    clearCart();
+    // Clear error when user starts typing
+    if (paymentError) {
+      setPaymentError('');
+    }
+  };
+
+  const formatCardNumber = (value: string) => {
+    // Remove all non-digits
+    const digits = value.replace(/\D/g, '');
+    // Add spaces every 4 digits
+    return digits.replace(/(\d{4})(?=\d)/g, '$1 ');
+  };
+
+  const formatExpiryDate = (value: string) => {
+    // Remove all non-digits
+    const digits = value.replace(/\D/g, '');
+    // Add slash after MM
+    if (digits.length >= 2) {
+      return digits.slice(0, 2) + '/' + digits.slice(2, 4);
+    }
+    return digits;
   };
 
   if (cart.items.length === 0 && !orderPlaced) {
@@ -81,6 +152,11 @@ export default function CheckoutPage() {
               <p className="text-gray-600 mb-4">
                 Your order from {restaurant?.name} has been placed and is being prepared.
               </p>
+              {transactionId && (
+                <p className="text-gray-500 text-sm mb-2">
+                  Transaction ID: {transactionId}
+                </p>
+              )}
               <p className="text-gray-500 text-sm">
                 Estimated delivery time: {restaurant?.deliveryTime}
               </p>
@@ -168,6 +244,22 @@ export default function CheckoutPage() {
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-xl font-bold text-gray-900 mb-4">Payment</h2>
             
+            {/* Payment Provider Selection */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Payment Provider
+              </label>
+              <select 
+                value={paymentProvider}
+                onChange={(e) => setPaymentProvider(e.target.value as PaymentProvider)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value={PaymentProvider.STRIPE}>Stripe</option>
+                <option value={PaymentProvider.PAYPAL}>PayPal</option>
+                <option value={PaymentProvider.MOCK}>Mock (Testing)</option>
+              </select>
+            </div>
+            
             <div className="space-y-4 mb-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -176,6 +268,13 @@ export default function CheckoutPage() {
                 <input 
                   type="text"
                   placeholder="1234 5678 9012 3456"
+                  value={cardDetails.cardNumber}
+                  onChange={(e) => {
+                    const formatted = formatCardNumber(e.target.value);
+                    if (formatted.length <= 19) { // Max 16 digits + 3 spaces
+                      handleCardDetailsChange('cardNumber', formatted);
+                    }
+                  }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -188,6 +287,15 @@ export default function CheckoutPage() {
                   <input 
                     type="text"
                     placeholder="MM/YY"
+                    value={formatExpiryDate(cardDetails.expiryMonth + cardDetails.expiryYear)}
+                    onChange={(e) => {
+                      const formatted = formatExpiryDate(e.target.value);
+                      if (formatted.length <= 5) {
+                        const [month, year] = formatted.split('/');
+                        handleCardDetailsChange('expiryMonth', month || '');
+                        handleCardDetailsChange('expiryYear', year || '');
+                      }
+                    }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -198,6 +306,13 @@ export default function CheckoutPage() {
                   <input 
                     type="text"
                     placeholder="123"
+                    value={cardDetails.cvv}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '');
+                      if (value.length <= 4) {
+                        handleCardDetailsChange('cvv', value);
+                      }
+                    }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -210,10 +325,19 @@ export default function CheckoutPage() {
                 <input 
                   type="text"
                   placeholder="John Doe"
+                  value={cardDetails.cardholderName}
+                  onChange={(e) => handleCardDetailsChange('cardholderName', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
+
+            {/* Payment Error */}
+            {paymentError && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-700 text-sm">{paymentError}</p>
+              </div>
+            )}
 
             <button
               onClick={handlePayNow}

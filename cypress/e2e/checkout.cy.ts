@@ -3,6 +3,14 @@ describe('Checkout Page', () => {
     cy.visit('/')
   })
 
+  const fillValidCardDetails = () => {
+    cy.get('select').select('Mock (Testing)')
+    cy.get('input[placeholder="1234 5678 9012 3456"]').type('4532123456789012')
+    cy.get('input[placeholder="MM/YY"]').type('1225')
+    cy.get('input[placeholder="123"]').type('123')
+    cy.get('input[placeholder="John Doe"]').type('John Doe')
+  }
+
   it('shows empty checkout state when no items in cart', () => {
     cy.visit('/checkout')
     cy.contains('No Items to Checkout').should('be.visible')
@@ -78,6 +86,9 @@ describe('Checkout Page', () => {
     cy.contains('Cart (1)').click()
     cy.contains('Proceed to Checkout').click()
     
+    // Fill valid card details
+    fillValidCardDetails()
+    
     // Click pay now
     cy.get('button').contains('Pay Now').click()
     
@@ -97,6 +108,10 @@ describe('Checkout Page', () => {
     cy.get('button').contains('Add to Cart').first().click()
     cy.contains('Cart (1)').click()
     cy.contains('Proceed to Checkout').click()
+    
+    // Fill valid card details
+    fillValidCardDetails()
+    
     cy.get('button').contains('Pay Now').click()
     
     // Wait for success page
@@ -129,6 +144,10 @@ describe('Checkout Page', () => {
     cy.get('button').contains('Add to Cart').first().click()
     cy.contains('Cart (1)').click()
     cy.contains('Proceed to Checkout').click()
+    
+    // Fill valid card details
+    fillValidCardDetails()
+    
     cy.get('button').contains('Pay Now').click()
     
     // Wait for success page and click order more
@@ -163,6 +182,10 @@ describe('Checkout Page', () => {
     cy.get('button').contains('Add to Cart').first().click()
     cy.contains('Cart (1)').click()
     cy.contains('Proceed to Checkout').click()
+    
+    // Fill valid card details
+    fillValidCardDetails()
+    
     cy.get('button').contains('Pay Now').click()
     
     // Wait for success page

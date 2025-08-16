@@ -18,3 +18,6 @@ This shows the users current cart (for a specific restaurant). Users can change 
 
 ## Checkout page
 This shows a list of items in the cart, a subtotal and total, and has a pay now button.
+
+## Payment processor
+Payment should take credit card details and forward to a payment processor. Multiple payment processors are supported using a common interface. If the payment is unsuccessful, a message should be shown to the user and the order should not succeed.

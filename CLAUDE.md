@@ -1,0 +1,11 @@
+# Food app
+
+When deciding what to implement, consult @REQUIREMENTS.md. If unclear, don't guess. Instead, ask me and update @REQUIREMENTS.md. Only write code once the requirement is clear. Remember to update @IMPLEMENTATION_PLAN with progress
+
+Tech stack:
+- Next.js
+- PostgreSQL
+- Typescript
+
+# Remember
+- Always use bun over npm

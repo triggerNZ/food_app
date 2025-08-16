@@ -10,6 +10,7 @@
 // ***********************************************
 
 // Custom commands for food app testing
+export {}; // Make this a module
 Cypress.Commands.add('addItemToCart', (restaurantName: string, itemIndex: number = 0) => {
   cy.visit('/')
   cy.contains(restaurantName).click()
@@ -28,10 +29,10 @@ Cypress.Commands.add('clearCart', () => {
 // Declare custom commands for TypeScript
 declare global {
   namespace Cypress {
-    interface Chainable {
-      addItemToCart(restaurantName: string, itemIndex?: number): Chainable<void>
-      goToCart(): Chainable<void>
-      clearCart(): Chainable<void>
+    interface Chainable<Subject = any> {
+      addItemToCart(restaurantName: string, itemIndex?: number): Chainable<Subject>
+      goToCart(): Chainable<Subject>
+      clearCart(): Chainable<Subject>
     }
   }
 }

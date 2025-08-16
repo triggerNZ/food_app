@@ -143,7 +143,7 @@ export default function RestaurantPage({ params }: RestaurantPageProps) {
           isOpen={showWarning}
           onClose={handleCancelWarning}
           onConfirm={handleConfirmClearCart}
-          currentRestaurant={currentCartRestaurant}
+          currentRestaurant={currentCartRestaurant || null}
           newRestaurant={restaurant}
         />
       </div>

@@ -11,3 +11,4 @@ Tech stack:
 # Remember
 - Always use bun over npm
 - Each piece of UI functionality should have a Cypress test
+- Don't start the dev server. Ask me to do it for you

@@ -36,3 +36,14 @@
 - Cart warning modal for different restaurants ✓
 **Tests**: Full ordering flow works end-to-end ✓
 **Status**: Complete
+
+## Stage 5: Database Integration
+**Goal**: Replace mock data with PostgreSQL database
+**Success Criteria**:
+- Repository pattern implemented ✓
+- API routes for data fetching ✓
+- Homepage uses database data ✓
+- Restaurant page uses database data ✓
+- Search functionality uses database ✓
+**Tests**: All functionality works with database
+**Status**: Complete

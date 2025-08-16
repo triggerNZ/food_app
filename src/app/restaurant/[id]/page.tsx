@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { mockRestaurants, mockMenuItems } from '@/data/mockData';
 import { Restaurant, MenuItem } from '@/types';
 import { useCart } from '@/context/CartContext';
 import CartWarningModal from '@/components/CartWarningModal';
@@ -15,22 +14,78 @@ export default function RestaurantPage({ params }: RestaurantPageProps) {
   const [id, setId] = useState<string>('');
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>('');
   const [showWarning, setShowWarning] = useState(false);
   const [pendingItem, setPendingItem] = useState<MenuItem | null>(null);
   const { addItem, addItemWithWarning, getCartItemCount, cart } = useCart();
   
-  const currentCartRestaurant = cart.restaurantId 
-    ? mockRestaurants.find(r => r.id === cart.restaurantId)
-    : null;
+  const [currentCartRestaurant, setCurrentCartRestaurant] = useState<Restaurant | null>(null);
 
   useEffect(() => {
     params.then(({ id }) => {
       setId(id);
-      const foundRestaurant = mockRestaurants.find(r => r.id === id);
-      setRestaurant(foundRestaurant || null);
-      setMenuItems(mockMenuItems[id] || []);
+      fetchRestaurantData(id);
     });
   }, [params]);
+
+  useEffect(() => {
+    if (cart.restaurantId) {
+      fetchCurrentCartRestaurant(cart.restaurantId);
+    } else {
+      setCurrentCartRestaurant(null);
+    }
+  }, [cart.restaurantId]);
+
+  const fetchRestaurantData = async (restaurantId: string) => {
+    try {
+      setLoading(true);
+      setError('');
+
+      // Fetch restaurant details and menu in parallel
+      const [restaurantResponse, menuResponse] = await Promise.all([
+        fetch(`/api/restaurants/${restaurantId}`),
+        fetch(`/api/restaurants/${restaurantId}/menu`)
+      ]);
+
+      if (!restaurantResponse.ok) {
+        if (restaurantResponse.status === 404) {
+          setRestaurant(null);
+          return;
+        }
+        throw new Error('Failed to fetch restaurant');
+      }
+
+      if (!menuResponse.ok) {
+        throw new Error('Failed to fetch menu');
+      }
+
+      const [restaurantData, menuData] = await Promise.all([
+        restaurantResponse.json(),
+        menuResponse.json()
+      ]);
+
+      setRestaurant(restaurantData);
+      setMenuItems(menuData);
+    } catch (err) {
+      setError('Failed to load restaurant data. Please try again.');
+      console.error('Error fetching restaurant data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCurrentCartRestaurant = async (restaurantId: string) => {
+    try {
+      const response = await fetch(`/api/restaurants/${restaurantId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setCurrentCartRestaurant(data);
+      }
+    } catch (err) {
+      console.error('Error fetching cart restaurant:', err);
+    }
+  };
   
   const handleAddToCart = (item: MenuItem) => {
     addItemWithWarning(item, id, () => {
@@ -51,6 +106,43 @@ export default function RestaurantPage({ params }: RestaurantPageProps) {
     setPendingItem(null);
     setShowWarning(false);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-4">
+        <div className="max-w-4xl mx-auto">
+          <Link href="/" className="text-blue-600 hover:text-blue-800 mb-4 inline-block">
+            ← Back to Restaurants
+          </Link>
+          <div className="text-center py-8">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <p className="mt-2 text-gray-600">Loading restaurant...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-4">
+        <div className="max-w-4xl mx-auto">
+          <Link href="/" className="text-blue-600 hover:text-blue-800 mb-4 inline-block">
+            ← Back to Restaurants
+          </Link>
+          <div className="text-center py-8">
+            <p className="text-red-600 mb-4">{error}</p>
+            <button 
+              onClick={() => fetchRestaurantData(id)}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!restaurant) {
     return (

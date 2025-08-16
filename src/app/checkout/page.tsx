@@ -1,18 +1,33 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
-import { mockRestaurants } from '@/data/mockData';
+import { Restaurant } from '@/types';
 
 export default function CheckoutPage() {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
+  const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const { cart, getCartTotal, clearCart } = useCart();
-  
-  const restaurant = cart.restaurantId 
-    ? mockRestaurants.find(r => r.id === cart.restaurantId)
-    : null;
+
+  useEffect(() => {
+    if (cart.restaurantId) {
+      fetchRestaurant(cart.restaurantId);
+    }
+  }, [cart.restaurantId]);
+
+  const fetchRestaurant = async (restaurantId: string) => {
+    try {
+      const response = await fetch(`/api/restaurants/${restaurantId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setRestaurant(data);
+      }
+    } catch (err) {
+      console.error('Error fetching restaurant:', err);
+    }
+  };
 
   const subtotal = getCartTotal();
   const deliveryFee = 2.99;
@@ -115,7 +130,7 @@ export default function CheckoutPage() {
               </div>
             )}
 
-            <div className="space-y-3 mb-6">
+            <div className="space-y-3 mb-6" data-testid="order-items">
               {cart.items.map((item) => (
                 <div key={item.menuItem.id} className="flex justify-between items-center">
                   <div className="flex-1">

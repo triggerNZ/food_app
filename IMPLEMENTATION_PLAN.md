@@ -30,8 +30,9 @@
 ## Stage 4: Cart & Checkout
 **Goal**: Complete the ordering flow
 **Success Criteria**:
-- Cart page shows items with quantity controls
-- Checkout page displays totals
-- Payment flow implemented
-**Tests**: Full ordering flow works end-to-end
-**Status**: Not Started
+- Cart page shows items with quantity controls ✓
+- Checkout page displays totals ✓
+- Payment flow implemented ✓
+- Cart warning modal for different restaurants ✓
+**Tests**: Full ordering flow works end-to-end ✓
+**Status**: Complete

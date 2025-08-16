@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { mockRestaurants, mockMenuItems } from '@/data/mockData';
 import { Restaurant, MenuItem } from '@/types';
+import { useCart } from '@/context/CartContext';
 
 interface RestaurantPageProps {
   params: Promise<{ id: string }>;
@@ -13,6 +14,7 @@ export default function RestaurantPage({ params }: RestaurantPageProps) {
   const [id, setId] = useState<string>('');
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const { addItem, getCartItemCount } = useCart();
 
   useEffect(() => {
     params.then(({ id }) => {
@@ -41,9 +43,14 @@ export default function RestaurantPage({ params }: RestaurantPageProps) {
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-4xl mx-auto">
-        <Link href="/" className="text-blue-600 hover:text-blue-800 mb-4 inline-block">
-          ← Back to Restaurants
-        </Link>
+        <div className="flex justify-between items-center mb-4">
+          <Link href="/" className="text-blue-600 hover:text-blue-800">
+            ← Back to Restaurants
+          </Link>
+          <Link href="/cart" className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+            Cart ({getCartItemCount()})
+          </Link>
+        </div>
         
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <div className="h-64 bg-gray-200 rounded-lg flex items-center justify-center mb-4">
@@ -91,7 +98,10 @@ export default function RestaurantPage({ params }: RestaurantPageProps) {
                           {item.name} Image
                         </span>
                       </div>
-                      <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                      <button 
+                        onClick={() => addItem(item, id)}
+                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                      >
                         Add to Cart
                       </button>
                     </div>

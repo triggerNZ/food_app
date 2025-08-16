@@ -22,10 +22,10 @@
 **Goal**: Add search functionality and detailed restaurant view
 **Success Criteria**:
 - Search by restaurant name, food type, menu items
-- Restaurant page shows full menu with images
-- Add to cart functionality works
+- Restaurant page shows full menu with images ✓
+- Add to cart functionality works (buttons ready)
 **Tests**: Search filters work, cart updates correctly
-**Status**: Not Started
+**Status**: Partially Complete - Restaurant page done, search pending
 
 ## Stage 4: Cart & Checkout
 **Goal**: Complete the ordering flow

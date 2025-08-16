@@ -23,7 +23,7 @@ export default function Home() {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {restaurants.map((restaurant) => (
             <Link key={restaurant.id} href={`/restaurant/${restaurant.id}`}>
-              <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer">
+              <div data-testid="restaurant-card" className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer">
                 <div className="h-48 bg-gray-200 rounded-t-lg flex items-center justify-center">
                   <span className="text-gray-400">
                     {restaurant.name} Image

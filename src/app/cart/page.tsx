@@ -1,15 +1,33 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
-import { mockRestaurants } from '@/data/mockData';
+import { Restaurant } from '@/types';
 
 export default function CartPage() {
   const { cart, updateQuantity, removeItem, getCartTotal, clearCart } = useCart();
-  
-  const restaurant = cart.restaurantId 
-    ? mockRestaurants.find(r => r.id === cart.restaurantId)
-    : null;
+  const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
+
+  useEffect(() => {
+    if (cart.restaurantId) {
+      fetchRestaurant(cart.restaurantId);
+    } else {
+      setRestaurant(null);
+    }
+  }, [cart.restaurantId]);
+
+  const fetchRestaurant = async (restaurantId: string) => {
+    try {
+      const response = await fetch(`/api/restaurants/${restaurantId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setRestaurant(data);
+      }
+    } catch (err) {
+      console.error('Error fetching restaurant:', err);
+    }
+  };
 
   if (cart.items.length === 0) {
     return (

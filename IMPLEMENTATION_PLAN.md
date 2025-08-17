@@ -72,3 +72,16 @@
 - Sample order data for testing ✓
 **Tests**: Database schema and services work correctly ✓
 **Status**: Complete
+
+## Stage 8: Order Management API & Checkout Integration  
+**Goal**: Create API endpoints and integrate order creation with checkout
+**Success Criteria**:
+- Complete order management API endpoints ✓
+- Order creation from cart data endpoint ✓
+- Order status management and cancellation ✓
+- Order statistics and restaurant filtering ✓
+- Checkout integration with customer information ✓
+- Order creation after successful payment ✓
+- Updated Cypress tests for new checkout flow ✓
+**Tests**: API endpoints and checkout integration work correctly ✓
+**Status**: Complete

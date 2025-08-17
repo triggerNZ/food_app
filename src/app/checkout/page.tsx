@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
-import { Restaurant } from '@/types';
+import { Restaurant, Order } from '@/types';
 import { CreditCardDetails, PaymentProvider } from '@/types/payment';
 import { PaymentService } from '@/services/payment';
 
@@ -14,6 +15,7 @@ export default function CheckoutPage() {
   const [paymentError, setPaymentError] = useState<string>('');
   const [transactionId, setTransactionId] = useState<string>('');
   const [paymentProvider, setPaymentProvider] = useState<PaymentProvider>(PaymentProvider.STRIPE);
+  const [createdOrder, setCreatedOrder] = useState<Order | null>(null);
   
   const [cardDetails, setCardDetails] = useState<CreditCardDetails>({
     cardNumber: '',
@@ -22,9 +24,18 @@ export default function CheckoutPage() {
     cvv: '',
     cardholderName: ''
   });
+
+  const [customerInfo, setCustomerInfo] = useState({
+    customerName: '',
+    customerEmail: '',
+    customerPhone: '',
+    deliveryAddress: '',
+    specialInstructions: ''
+  });
   
   const { cart, getCartTotal, clearCart } = useCart();
   const paymentService = new PaymentService();
+  const router = useRouter();
 
   useEffect(() => {
     if (cart.restaurantId) {
@@ -54,7 +65,13 @@ export default function CheckoutPage() {
     setPaymentError('');
     
     try {
-      // Validate card details first
+      // Validate customer information
+      if (!customerInfo.customerName || !customerInfo.customerEmail || 
+          !customerInfo.customerPhone || !customerInfo.deliveryAddress) {
+        throw new Error('Please fill in all required customer information.');
+      }
+
+      // Validate card details
       if (!paymentService.validateCardDetails(cardDetails)) {
         throw new Error('Please check your card details and try again.');
       }
@@ -65,7 +82,7 @@ export default function CheckoutPage() {
         currency: 'USD',
         cardDetails,
         orderId: `order_${Date.now()}`,
-        customerEmail: 'customer@example.com', // In real app, get from user account
+        customerEmail: customerInfo.customerEmail,
         description: `Order from ${restaurant?.name || 'Restaurant'}`
       };
 
@@ -73,6 +90,36 @@ export default function CheckoutPage() {
       const paymentResponse = await paymentService.processPayment(paymentRequest, paymentProvider);
       
       if (paymentResponse.success) {
+        // Create order after successful payment
+        const orderData = {
+          cart,
+          customerInfo,
+          paymentInfo: {
+            paymentMethod: paymentProvider,
+            paymentTransactionId: paymentResponse.transactionId
+          },
+          pricing: {
+            subtotal,
+            tax,
+            deliveryFee,
+            total
+          }
+        };
+
+        const orderResponse = await fetch('/api/orders/from-cart', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(orderData),
+        });
+
+        if (!orderResponse.ok) {
+          throw new Error('Failed to create order. Please contact support.');
+        }
+
+        const order = await orderResponse.json();
+        setCreatedOrder(order);
         setTransactionId(paymentResponse.transactionId || '');
         setOrderPlaced(true);
         clearCart();
@@ -152,6 +199,16 @@ export default function CheckoutPage() {
               <p className="text-gray-600 mb-4">
                 Your order from {restaurant?.name} has been placed and is being prepared.
               </p>
+              {createdOrder && (
+                <div className="mb-4 p-4 bg-blue-50 rounded-lg">
+                  <p className="text-blue-800 font-medium mb-2">
+                    Order ID: {createdOrder.id}
+                  </p>
+                  <p className="text-blue-600 text-sm">
+                    Status: {createdOrder.status.replace('_', ' ').toUpperCase()}
+                  </p>
+                </div>
+              )}
               {transactionId && (
                 <p className="text-gray-500 text-sm mb-2">
                   Transaction ID: {transactionId}
@@ -163,6 +220,14 @@ export default function CheckoutPage() {
             </div>
             
             <div className="space-y-3">
+              {createdOrder && (
+                <Link 
+                  href={`/orders/${createdOrder.id}`}
+                  className="block w-full bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  Track Your Order
+                </Link>
+              )}
               <Link 
                 href="/"
                 className="block w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors"
@@ -193,7 +258,7 @@ export default function CheckoutPage() {
           <div></div> {/* Spacer for centering */}
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-6 lg:grid-cols-3">
           {/* Order Summary */}
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-xl font-bold text-gray-900 mb-4">Order Summary</h2>
@@ -236,6 +301,82 @@ export default function CheckoutPage() {
               <div className="flex justify-between pt-2 border-t border-gray-200">
                 <span className="text-lg font-bold text-gray-900">Total:</span>
                 <span className="text-lg font-bold text-gray-900">${total.toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Customer Information */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Delivery Information</h2>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Full Name *
+                </label>
+                <input 
+                  type="text"
+                  placeholder="John Doe"
+                  value={customerInfo.customerName}
+                  onChange={(e) => setCustomerInfo(prev => ({ ...prev, customerName: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email *
+                </label>
+                <input 
+                  type="email"
+                  placeholder="john@example.com"
+                  value={customerInfo.customerEmail}
+                  onChange={(e) => setCustomerInfo(prev => ({ ...prev, customerEmail: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Phone Number *
+                </label>
+                <input 
+                  type="tel"
+                  placeholder="555-0123"
+                  value={customerInfo.customerPhone}
+                  onChange={(e) => setCustomerInfo(prev => ({ ...prev, customerPhone: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Delivery Address *
+                </label>
+                <textarea 
+                  placeholder="123 Main St, Anytown, ST 12345"
+                  value={customerInfo.deliveryAddress}
+                  onChange={(e) => setCustomerInfo(prev => ({ ...prev, deliveryAddress: e.target.value }))}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Special Instructions (Optional)
+                </label>
+                <textarea 
+                  placeholder="Ring doorbell, leave at door, etc."
+                  value={customerInfo.specialInstructions}
+                  onChange={(e) => setCustomerInfo(prev => ({ ...prev, specialInstructions: e.target.value }))}
+                  rows={2}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
               </div>
             </div>
           </div>

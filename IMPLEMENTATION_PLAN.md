@@ -113,3 +113,18 @@
 - Comprehensive Cypress test coverage ✓
 **Tests**: Order history functionality works correctly ✓
 **Status**: Complete
+
+## Stage 11: Restaurant Dashboard  
+**Goal**: Admin interface for restaurants to manage orders and track performance
+**Success Criteria**:
+- Restaurant selection dropdown with auto-selection ✓
+- Order statistics dashboard (total, active, delivered, revenue) ✓
+- Order filtering by status (active, all, specific statuses) ✓
+- Complete order details display with customer info and items ✓
+- Order status management with workflow controls ✓
+- Real-time status updates via API calls ✓
+- Navigation integration with existing pages ✓
+- Responsive design for mobile and desktop ✓
+- Comprehensive Cypress test coverage ✓
+**Tests**: Restaurant dashboard functionality works correctly ✓
+**Status**: Complete

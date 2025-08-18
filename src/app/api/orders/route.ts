@@ -17,6 +17,12 @@ export async function GET(request: NextRequest) {
       orders = await orderService.getOrdersByCustomerEmail(customerEmail);
     } else if (restaurantId) {
       orders = await orderService.getOrdersByRestaurant(restaurantId);
+      
+      // Filter by status if provided
+      if (status) {
+        const statusList = status.split(',').map(s => s.trim());
+        orders = orders.filter(order => statusList.includes(order.status));
+      }
     } else if (status) {
       orders = await orderService.getOrdersByStatus(status as any);
     } else {

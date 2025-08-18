@@ -86,8 +86,19 @@ export class OrderService {
     return ordersWithDetails.filter((order): order is OrderWithItems => order !== null);
   }
 
-  async getOrdersByRestaurant(restaurantId: string): Promise<Order[]> {
-    return this.orderRepository.findByRestaurantId(restaurantId);
+  async getOrdersByRestaurant(restaurantId: string): Promise<OrderWithItems[]> {
+    const orders = await this.orderRepository.findByRestaurantId(restaurantId);
+    
+    // Get full order details including restaurant and items for each order
+    const ordersWithDetails = await Promise.all(
+      orders.map(async (order) => {
+        const fullOrder = await this.orderRepository.findWithItems(order.id);
+        return fullOrder;
+      })
+    );
+    
+    // Filter out any null results and return
+    return ordersWithDetails.filter((order): order is OrderWithItems => order !== null);
   }
 
   async getOrdersByStatus(status: OrderStatus): Promise<Order[]> {

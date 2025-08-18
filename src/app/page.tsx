@@ -61,12 +61,20 @@ export default function Home() {
                 Discover great food from local restaurants
               </p>
             </div>
-            <Link 
-              href="/orders"
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
-            >
-              Order History
-            </Link>
+            <div className="flex gap-3">
+              <Link 
+                href="/orders"
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
+              >
+                Order History
+              </Link>
+              <Link 
+                href="/dashboard"
+                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm"
+              >
+                Restaurant Dashboard
+              </Link>
+            </div>
           </div>
           
           <div className="relative">

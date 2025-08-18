@@ -57,7 +57,26 @@ export default function OrderTrackingPage() {
       }
 
       const orderData = await response.json();
-      setOrder(orderData);
+      
+      // Convert string numbers to actual numbers (PostgreSQL DECIMAL fields come as strings)
+      const processedOrder = {
+        ...orderData,
+        subtotal: parseFloat(orderData.subtotal || 0),
+        tax: parseFloat(orderData.tax || 0),
+        deliveryFee: parseFloat(orderData.deliveryFee || 0),
+        total: parseFloat(orderData.total || 0),
+        items: orderData.items?.map((item: any) => ({
+          ...item,
+          unitPrice: parseFloat(item.unitPrice || 0),
+          totalPrice: parseFloat(item.totalPrice || 0),
+          menuItem: {
+            ...item.menuItem,
+            price: parseFloat(item.menuItem?.price || 0)
+          }
+        })) || []
+      };
+      
+      setOrder(processedOrder);
       setError('');
       setLastUpdated(new Date());
     } catch (err) {

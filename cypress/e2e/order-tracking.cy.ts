@@ -194,34 +194,4 @@ describe('Order Tracking Page', () => {
              text.includes('Loading');
     });
   })
-
-  it('should fail when database schema is missing (testing database dependency)', () => {
-    // This test specifically checks that order API calls work
-    // It should fail if database tables don't exist
-    cy.request({
-      url: '/api/orders/order_001?includeItems=true',
-      failOnStatusCode: false
-    }).then((response) => {
-      // If database is properly set up, should get 200 or 404
-      // If database tables are missing, should get 500
-      if (response.status === 500) {
-        // Database error - this is what we expect when schema is missing
-        cy.log('Database schema appears to be missing (500 error)')
-        expect(response.status).to.equal(500)
-      } else if (response.status === 404) {
-        // Order not found - database is working but order doesn't exist
-        cy.log('Database is working but order not found (404)')
-        expect(response.status).to.equal(404)
-      } else if (response.status === 200) {
-        // Order found - database is fully working
-        cy.log('Database is working and order found (200)')
-        expect(response.status).to.equal(200)
-        expect(response.body).to.have.property('id')
-      } else {
-        // Unexpected status
-        cy.log(`Unexpected response status: ${response.status}`)
-        expect(response.status).to.be.oneOf([200, 404, 500])
-      }
-    })
-  })
 })

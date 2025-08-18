@@ -230,9 +230,15 @@ export default function CheckoutPage() {
               )}
               <Link 
                 href="/"
-                className="block w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors"
+                className="block w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors mb-3"
               >
                 Order More Food
+              </Link>
+              <Link 
+                href="/orders"
+                className="block w-full bg-gray-600 text-white py-3 px-6 rounded-lg hover:bg-gray-700 transition-colors mb-3"
+              >
+                View Order History
               </Link>
               <button 
                 onClick={() => window.print()}

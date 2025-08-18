@@ -52,12 +52,22 @@ export default function Home() {
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-4xl mx-auto">
         <header className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Restaurants Near You
-          </h1>
-          <p className="text-gray-600 mb-6">
-            Discover great food from local restaurants
-          </p>
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Restaurants Near You
+              </h1>
+              <p className="text-gray-600">
+                Discover great food from local restaurants
+              </p>
+            </div>
+            <Link 
+              href="/orders"
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
+            >
+              Order History
+            </Link>
+          </div>
           
           <div className="relative">
             <input
